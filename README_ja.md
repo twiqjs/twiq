@@ -15,14 +15,14 @@
 ## インストール
 
 ```bash
-npm install twiq
+npm install @twiqjs/twiq
 ```
 
 または、HTML 内で CDN 経由で直接使用することもできます（ES モジュール）:
 
 ```html
 <script type="module">
-  import { tags, render } from 'https://unpkg.com/twiq/dist/twiq.js';
+  import { tags, render } from 'https://unpkg.com/@twiqjs/twiq/dist/twiq.js';
 </script>
 ```
 
@@ -31,7 +31,7 @@ npm install twiq
 ### 基本例
 
 ```ts
-import { tags, render } from 'twiq';
+import { tags, render } from '@twiqjs/twiq';
 
 const { div, h1, button } = tags;
 

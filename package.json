@@ -1,0 +1,43 @@
+{
+  "name": "twiq",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/twiq.js",
+  "types": "./dist/twiq.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "lint": "biome check ."
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/twiq.d.ts",
+      "import": "./dist/twiq.js",
+      "require": "./dist/twiq.cjs"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/twiqjs/twiq.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/twiqjs/twiq/issues"
+  },
+  "homepage": "https://github.com/twiqjs/twiq#readme",
+  "description": "",
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
+    "happy-dom": "^20.0.11",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.14"
+  }
+}

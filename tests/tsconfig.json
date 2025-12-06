@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "twiq": ["./src/twiq.ts"],
+      "twiq/*": ["./src/*.ts"]
+    },
+    "types": ["vitest"]
+  },
+  "include": ["../src", "."],
+  "exclude": ["../dist", "../node_modules"]
+}

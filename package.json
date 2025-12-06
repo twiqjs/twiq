@@ -26,13 +26,23 @@
     "type": "git",
     "url": "git+https://github.com/twiqjs/twiq.git"
   },
-  "author": "",
+  "keywords": [
+    "ui",
+    "library",
+    "typescript",
+    "zero-build",
+    "no-vdom",
+    "declarative",
+    "html",
+    "svg"
+  ],
+  "author": "high-u",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/twiqjs/twiq/issues"
   },
   "homepage": "https://github.com/twiqjs/twiq#readme",
-  "description": "",
+  "description": "A tiny, zero-build, type-safe UI library for modern web development.",
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",
     "happy-dom": "^20.0.11",

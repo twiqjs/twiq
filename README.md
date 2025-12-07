@@ -59,11 +59,11 @@ document.body.append(renderApp(0));
 
 twiq uses a "stable container" approach. When you call a function created by `render(...)`:
 
-1.  **First Call**: It creates the DOM elements and returns the root element (or a fragment). You append this to the document.
-2.  **Subsequent Calls**: It updates the *content* of that existing root element. It uses `replaceChildren` to efficiently update the view.
+1.  **First Call**: It creates the DOM elements and returns the root element. You append this to the document.
+2.  **Subsequent Calls**: It updates the view by replacing the underlying root element using `replaceWith`.
 
 > [!NOTE]
-> The element returned by the initial `render` call is stable. You should append it to the DOM once. Future updates will mutate the children of this element, not the element itself.
+> The element returned by the initial `render` call is the *initial* root. Subsequent updates will replace this element in the DOM with a new one.
 
 ### Functional Components
 
@@ -122,7 +122,7 @@ div({ id: 'foo' }, 'Hello');
 
 Creates an update function for the root.
 
-- **callback**: `(...args) => Element | DocumentFragment | Array<...>`
+- **callback**: `(...args) => Element`
 - **Returns**: A function that accepts `...args`. calling this returned function updates the DOM.
 
 ## License

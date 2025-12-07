@@ -4,7 +4,7 @@ type EventHandler = (event: Event) => void;
 export type Props = {
   [K in string]: K extends `on${string}` ? EventHandler : PropValue;
 };
-export type RenderCallback = (...args: any[]) => Element | DocumentFragment | Array<Element | DocumentFragment | null> | null;
+export type RenderCallback = (...args: any[]) => Element;
 
 // TagFn is generic so standard tag names can map to the correct element type.
 type TagFn<E extends Element = Element> = (props?: Props, ...children: any[]) => E;

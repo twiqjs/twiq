@@ -30,33 +30,26 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
   return element;
 };
 
-export const render = (createElements: RenderCallback): ((...args: any[]) => Element | DocumentFragment) => {
-  let current: Element | DocumentFragment | null = null;
+export const render = (createElements: RenderCallback): ((...args: any[]) => Element) => {
+  let current: Element | null = null;
 
   return (...args: any[]) => {
     const result = createElements(...args);
 
-    const normalized: Array<Element | DocumentFragment> = (() => {
-      if (result === null) return [];
-      if (result instanceof DocumentFragment) return [result];
-      if (Array.isArray(result)) return result.filter((child): child is Element | DocumentFragment => child != null);
-      return [result];
-    })();
-
-    if (!current) {
-      if (normalized.length === 1) {
-        current = normalized[0] as Element | DocumentFragment;
-      } else {
-        current = document.createDocumentFragment();
-        if (normalized.length > 0) {
-          current.append(...normalized);
-        }
-      }
-    } else {
-      current.replaceChildren(...normalized);
+    if (result instanceof DocumentFragment || Array.isArray(result) || result === null) {
+      throw new Error('Render function must return a single Element.');
     }
 
-    return current as Element | DocumentFragment;
+    const newElement = result as Element;
+
+    if (!current) {
+      current = newElement;
+    } else {
+      current.replaceWith(newElement);
+      current = newElement;
+    }
+
+    return current;
   };
 };
 

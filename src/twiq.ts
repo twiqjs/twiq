@@ -34,17 +34,13 @@ export const render = (createElements: RenderCallback): ((...args: any[]) => Ele
   let current: Element | null = null;
 
   return (...args: any[]) => {
-    const result = createElements(...args);
-
-    const newElement = result;
-
+    const newElement = createElements(...args);
     if (!current) {
       current = newElement;
     } else {
       current.replaceWith(newElement);
       current = newElement;
     }
-
     return current;
   };
 };

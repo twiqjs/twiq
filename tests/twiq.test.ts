@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, tags, tagsSvg } from 'twiq';
+import { render, tags, tagsSvg } from '@twiqjs/twiq';
 
 const { button, div, input, li, span } = tags;
 
@@ -38,65 +38,45 @@ describe('twiq', () => {
     expect(el.textContent).toBe('foo42false');
   });
 
-  it('reuses the same root between renders and replaces children', () => {
+  it('updates the element content on subsequent renders', () => {
     const view = render((count: number) => div({}, `count:${count}`));
+    const container = document.createElement('div');
 
     const first = view(1);
+    container.append(first);
+    expect(first.textContent).toBe('count:1');
+
     const second = view(2);
-
-    expect(second).toBe(first);
-    expect(first.textContent).toBe('count:2');
+    // Note: With Single Root (replaceWith), the root element instance changes.
+    expect(second).not.toBe(first);
+    expect(second.textContent).toBe('count:2');
+    expect(container.firstElementChild).toBe(second);
   });
 
-  it('normalizes arrays and nullish children through render()', () => {
-    const view = render((items: Array<string | null>) =>
-      items.map((item, index) => (item ? li({ 'data-index': index }, item) : null))
-    );
 
-    const fragment = view(['a', null, 'b']);
-    expect(fragment).toBeInstanceOf(DocumentFragment);
-    expect(fragment.childElementCount).toBe(2);
-    expect(fragment.firstElementChild?.textContent).toBe('a');
-
-    const sameFragment = view(['c']);
-    expect(sameFragment).toBe(fragment);
-    expect(fragment.childElementCount).toBe(1);
-    expect(fragment.firstElementChild?.textContent).toBe('c');
-  });
 
   it('replaces children when renderer output shape changes with new args', () => {
     const view = render((flag: boolean) =>
-      flag
-        ? [span({ id: 'on' }, 'on'), span({ id: 'extra' }, 'extra')]
-        : [span({ id: 'off' }, 'off')]
+      div({},
+        ...(flag
+          ? [span({ id: 'on' }, 'on'), span({ id: 'extra' }, 'extra')]
+          : [span({ id: 'off' }, 'off')]
+        )
+      )
     );
+    const container = document.createElement('div');
 
-    const fragment = view(true);
-    expect(fragment.childElementCount).toBe(2);
-    expect(fragment.firstElementChild?.id).toBe('on');
+    const el = view(true);
+    container.append(el);
+    expect(el.childElementCount).toBe(2);
+    expect(el.firstElementChild?.id).toBe('on');
 
-    const sameFragment = view(false);
-    expect(sameFragment).toBe(fragment);
-    expect(fragment.childElementCount).toBe(1);
-    expect(fragment.firstElementChild?.id).toBe('off');
+    const updated = view(false);
+    expect(updated.childElementCount).toBe(1);
+    expect(updated.firstElementChild?.id).toBe('off');
   });
 
-  it('accepts DocumentFragments from the renderer', () => {
-    const view = render((letters: string[]) => {
-      const fragment = document.createDocumentFragment();
-      letters.forEach((letter) => fragment.append(span({}, letter)));
-      return fragment;
-    });
 
-    const first = view(['x', 'y']);
-    expect(first).toBeInstanceOf(DocumentFragment);
-    expect(first.childNodes).toHaveLength(2);
-
-    const second = view(['z']);
-    expect(second).toBe(first);
-    expect(first.childNodes).toHaveLength(1);
-    expect(first.firstChild?.textContent).toBe('z');
-  });
 
   it('creates SVG elements in the correct namespace', () => {
     const { rect } = tagsSvg;

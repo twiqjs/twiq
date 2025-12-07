@@ -36,11 +36,7 @@ export const render = (createElements: RenderCallback): ((...args: any[]) => Ele
   return (...args: any[]) => {
     const result = createElements(...args);
 
-    if (result instanceof DocumentFragment || Array.isArray(result) || result === null) {
-      throw new Error('Render function must return a single Element.');
-    }
-
-    const newElement = result as Element;
+    const newElement = result;
 
     if (!current) {
       current = newElement;

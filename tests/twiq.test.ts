@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, tags, tagsSvg } from 'twiq';
+import { render, tags, tagsSvg } from '@twiqjs/twiq';
 
 const { button, div, input, li, span } = tags;
 

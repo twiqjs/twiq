@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, tags, tagsSvg } from '@twiqjs/twiq';
+import { mount, tags, tagsSvg } from '@twiqjs/twiq';
 
 const { button, div, input, li, span } = tags;
 
@@ -33,47 +33,67 @@ describe('twiq', () => {
     expect(widget.getAttribute('data-id')).toBe('1');
   });
 
-  it('normalizes primitive children (string/number/boolean) to text nodes', () => {
-    const el = div({}, 'foo', 42, false);
-    expect(el.textContent).toBe('foo42false');
+  it('mounts content to an element by ID', () => {
+    document.body.innerHTML = '<div id="app"></div>';
+    mount('app', div({}, 'hello'));
+    const app = document.getElementById('app');
+    expect(app?.innerHTML).toBe('<div>hello</div>');
   });
 
-  it('updates the element content on subsequent renders', () => {
-    const view = render((count: number) => div({}, `count:${count}`));
+  it('mounts content to a direct Element reference', () => {
     const container = document.createElement('div');
-
-    const first = view(1);
-    container.append(first);
-    expect(first.textContent).toBe('count:1');
-
-    const second = view(2);
-    // Note: With Single Root (replaceWith), the root element instance changes.
-    expect(second).not.toBe(first);
-    expect(second.textContent).toBe('count:2');
-    expect(container.firstElementChild).toBe(second);
+    mount(container, span({}, 'world'));
+    expect(container.innerHTML).toBe('<span>world</span>');
   });
 
+  it('mounts multiple children via spread syntax', () => {
+    const container = document.createElement('div');
+    const items = [
+      span({ id: '1' }, 'one'),
+      span({ id: '2' }, 'two')
+    ];
+    // Must use spread syntax as per strict specification
+    mount(container, ...items);
 
+    expect(container.childElementCount).toBe(2);
+    expect(container.firstElementChild?.textContent).toBe('one');
+    expect(container.lastElementChild?.textContent).toBe('two');
+  });
 
-  it('replaces children when renderer output shape changes with new args', () => {
-    const view = render((flag: boolean) =>
-      div({},
-        ...(flag
-          ? [span({ id: 'on' }, 'on'), span({ id: 'extra' }, 'extra')]
-          : [span({ id: 'off' }, 'off')]
-        )
-      )
-    );
+  it('handles empty children (empty spread)', () => {
+    const container = document.createElement('div');
+    container.innerHTML = '<span>initial</span>';
+
+    // mount with empty spread (effectively no children)
+    // strict check: passed as ...[]
+    mount(container, ...[]);
+
+    expect(container.innerHTML).toBe('');
+    expect(container.childElementCount).toBe(0);
+  });
+
+  it('clears content when no children are provided (no args)', () => {
+    const container = document.createElement('div');
+    container.innerHTML = '<span>initial</span>';
+
+    // mount with no children arguments
+    mount(container);
+
+    expect(container.innerHTML).toBe('');
+    expect(container.childElementCount).toBe(0);
+  });
+
+  it('replaces content on subsequent mounts (replaceChildren behavior)', () => {
     const container = document.createElement('div');
 
-    const el = view(true);
-    container.append(el);
-    expect(el.childElementCount).toBe(2);
-    expect(el.firstElementChild?.id).toBe('on');
+    // First mount
+    mount(container, div({ id: 'a' }, 'A'));
+    expect(container.firstElementChild?.id).toBe('a');
 
-    const updated = view(false);
-    expect(updated.childElementCount).toBe(1);
-    expect(updated.firstElementChild?.id).toBe('off');
+    // Second mount (replace)
+    mount(container, div({ id: 'b' }, 'B'));
+    expect(container.innerHTML).toBe('<div id="b">B</div>');
+    expect(container.firstElementChild?.id).toBe('b');
   });
 
 

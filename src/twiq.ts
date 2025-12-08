@@ -4,15 +4,13 @@ type EventHandler = (event: Event) => void;
 export type Props = {
   [K in string]: K extends `on${string}` ? EventHandler : PropValue;
 };
-export type RenderCallback = (...args: any[]) => Element;
 
-// TagFn is generic so standard tag names can map to the correct element type.
-type TagFn<E extends Element = Element> = (props?: Props, ...children: any[]) => E;
+type TagFn<E extends Element = Element> = (props?: Props, ...children: (string | Node)[]) => E;
 type TagMap = Record<string, TagFn>;
 type HtmlTagMap = { [K in keyof HTMLElementTagNameMap]: TagFn<HTMLElementTagNameMap[K]> } & TagMap;
 type SvgTagMap = { [K in keyof SVGElementTagNameMap]: TagFn<SVGElementTagNameMap[K]> } & TagMap;
 
-const createElement = (ns: string | undefined) => (tag: string, props: Props = {}, ...children: any[]): Element => {
+const createElement = (ns: string | undefined) => (tag: string, props: Props = {}, ...children: (string | Node)[]): Element => {
   const element = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
   Object.entries(props).forEach(([key, value]) => {
     if (key.startsWith('on') && typeof value === 'function') {
@@ -21,7 +19,7 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
     }
     const finalValue = typeof value === 'function' ? value() : value;
     if (!ns && key in element) {
-      (element as Record<string, any>)[key] = finalValue;
+      (element as unknown as Record<string, string | number | boolean>)[key] = finalValue;
     } else {
       element.setAttribute(key, String(finalValue));
     }
@@ -30,24 +28,15 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
   return element;
 };
 
-export const render = (createElements: RenderCallback): ((...args: any[]) => Element) => {
-  let current: Element | null = null;
-
-  return (...args: any[]) => {
-    const newElement = createElements(...args);
-    if (!current) {
-      current = newElement;
-    } else {
-      current.replaceWith(newElement);
-      current = newElement;
-    }
-    return current;
-  };
+export const mount = (target: string | Element, ...children: (string | Node)[]): void => {
+  const el = typeof target === 'string' ? document.getElementById(target) : target;
+  if (!el) return;
+  el.replaceChildren(...children);
 };
 
-const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children: any[]) => Element): T =>
+const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children: (string | Node)[]) => Element): T =>
   new Proxy({} as T, {
-    get: (_, tag: string) => (props: Props = {}, ...children: any[]) => ce(tag, props, ...children)
+    get: (_, tag: string) => (props: Props = {}, ...children: (string | Node)[]) => ce(tag, props, ...children)
   }) as T;
 
 export const tags: HtmlTagMap = makeTags<HtmlTagMap>(createElement(''));

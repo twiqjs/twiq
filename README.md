@@ -1,6 +1,6 @@
 # twiq
 
-English | [日本語](README_ja.md)
+English | [Japanese](README_ja.md)
 
 **twiq** is a tiny, zero-build, type-safe UI library for modern web development. It allows you to build declarative interfaces using standard HTML/SVG tags without the overhead of a Virtual DOM or complex build steps.
 
@@ -22,7 +22,7 @@ Or use it directly via CDN in your HTML (ES Modules):
 
 ```html
 <script type="module">
-  import { tags, render } from 'https://unpkg.com/@twiqjs/twiq/dist/twiq.js';
+  import { tags, mount } from 'https://unpkg.com/@twiqjs/twiq/dist/twiq.js';
 </script>
 ```
 
@@ -31,39 +31,39 @@ Or use it directly via CDN in your HTML (ES Modules):
 ### Basic Example
 
 ```ts
-import { tags, render } from '@twiqjs/twiq';
+import { tags, mount } from '@twiqjs/twiq';
 
 const { div, h1, button } = tags;
 
-// 1. Define a renderer
-// The function receives your data and returns the element structure.
-const renderApp = render((count) => 
+// 1. Define a component
+// Components are just functions that return elements.
+const App = (count) => 
   div({ id: 'app' },
     h1({}, `Count: ${count}`),
     button({ 
       onClick: () => update(count + 1) 
     }, 'Increment')
-  )
-);
+  );
 
 // 2. Define update function
 const update = (newCount) => {
-  renderApp(newCount);
+  mount('app', App(newCount));
 };
 
-// 3. Initial render & mount
-document.body.append(renderApp(0));
+// 3. Initial mount
+// You need a container in your HTML: <div id="app"></div>
+mount('app', App(0));
 ```
 
 ### How It Works
 
-twiq uses a "stable container" approach. When you call a function created by `render(...)`:
+`mount` is a simple helper that updates the content of a target element.
 
-1.  **First Call**: It creates the DOM elements and returns the root element. You append this to the document.
-2.  **Subsequent Calls**: It updates the view by replacing the underlying root element using `replaceWith`.
+1.  **Target Resolution**: It finds the target element by ID (or accepts an Element directly).
+2.  **Content Replacement**: It uses `replaceChildren` to replace the target's content with the new elements.
 
 > [!NOTE]
-> The element returned by the initial `render` call is the *initial* root. Subsequent updates will replace this element in the DOM with a new one.
+> `twiq` does not use a Virtual DOM. `mount` replaces the children of the target element directly.
 
 ### Functional Components
 
@@ -78,11 +78,11 @@ const TodoItem = (task) =>
   );
 
 // Usage in a list
-const renderList = render((tasks) => 
+// Note: You must use spread syntax (...) for arrays.
+const TaskList = (tasks) => 
   div({}, 
     ...tasks.map(TodoItem)
-  )
-);
+  );
 ```
 
 ### Event Handling
@@ -116,14 +116,15 @@ div({ id: 'foo' }, 'Hello');
 ```
 
 - **props**: Object key-values for attributes. `on[Event]` keys attach listeners. Functions passed as values are invoked.
-- **children**: Strings, numbers, Nodes, or arrays of these.
+- **children**: Strings or Nodes. **Arrays are not accepted** directly; use spread syntax (`...`).
 
-### `render(callback)`
+### `mount(target, ...children)`
 
-Creates an update function for the root.
+Updates the content of a target element.
 
-- **callback**: `(...args) => Element`
-- **Returns**: A function that accepts `...args`. calling this returned function updates the DOM.
+- **target**: `string` (ID) or `Element`.
+- **children**: `string` or `Node`. Multiple arguments can be passed.
+- **Behavior**: Uses `replaceChildren` to update the target. Arrays must be spread (`...`).
 
 ## License
 

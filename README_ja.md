@@ -1,6 +1,6 @@
 # twiq
 
-[English](README.md) | 日本語
+[English](README.md) | Japanese
 
 **twiq** は、モダンな Web 開発のための、極小・ビルド不要・型セーフな UI ライブラリです。仮想 DOM や複雑なビルドステップのオーバーヘッドなしに、標準的な HTML/SVG タグを使用して宣言的なインターフェースを構築できます。
 
@@ -22,7 +22,7 @@ npm install @twiqjs/twiq
 
 ```html
 <script type="module">
-  import { tags, render } from 'https://unpkg.com/@twiqjs/twiq/dist/twiq.js';
+  import { tags, mount } from 'https://unpkg.com/@twiqjs/twiq/dist/twiq.js';
 </script>
 ```
 
@@ -31,39 +31,39 @@ npm install @twiqjs/twiq
 ### 基本例
 
 ```ts
-import { tags, render } from '@twiqjs/twiq';
+import { tags, mount } from '@twiqjs/twiq';
 
 const { div, h1, button } = tags;
 
-// 1. レンダラーの定義
-// 関数はデータを受け取り、要素構造を返します。
-const renderApp = render((count) => 
+// 1. コンポーネントの定義
+// コンポーネントは、要素を返す単なる関数です。
+const App = (count) => 
   div({ id: 'app' },
     h1({}, `Count: ${count}`),
     button({ 
       onClick: () => update(count + 1) 
     }, 'Increment')
-  )
-);
+  );
 
 // 2. 更新関数の定義
 const update = (newCount) => {
-  renderApp(newCount);
+  mount('app', App(newCount));
 };
 
-// 3. 初期レンダリングとマウント
-document.body.append(renderApp(0));
+// 3. 初回マウント
+// HTML側にコンテナが必要です: <div id="app"></div>
+mount('app', App(0));
 ```
 
 ### 仕組み（How It Works）
 
-twiq は「安定したコンテナ（stable container）」アプローチを採用しています。`render(...)` によって作成された関数を呼び出すと:
+`mount` は、ターゲット要素のコンテンツを更新するシンプルなヘルパーです。
 
-1.  **初回呼び出し**: DOM 要素を作成し、ルート要素を返します。これをドキュメントに追加します。
-2.  **2回目以降の呼び出し**: `replaceWith` を使用して、基礎となるルート要素を新しいものに置き換えることでビューを更新します。
+1.  **ターゲットの解決**: ID によってターゲット要素を検索します（または Element を直接受け取ります）。
+2.  **コンテンツの置換**: `replaceChildren` を使用して、ターゲットのコンテンツを新しい要素で置き換えます。
 
 > [!NOTE]
-> 初回の `render` 呼び出しで返される要素は *初期* ルートです。その後の更新では、この要素は DOM 内で新しいものに置き換えられます。
+> `twiq` は仮想 DOM (Virtual DOM) を使用しません。`mount` はターゲット要素の子要素を直接置き換えます。
 
 ### 関数型コンポーネント
 
@@ -78,11 +78,11 @@ const TodoItem = (task) =>
   );
 
 // リストでの使用
-const renderList = render((tasks) => 
+// 注意: 配列にはスプレッド構文 (...) を使用する必要があります。
+const TaskList = (tasks) => 
   div({}, 
     ...tasks.map(TodoItem)
-  )
-);
+  );
 ```
 
 ### イベントハンドリング
@@ -116,14 +116,15 @@ div({ id: 'foo' }, 'Hello');
 ```
 
 - **props**: 属性のキーと値のオブジェクト。`on[Event]` キーはリスナーをアタッチします。値として渡された関数が実行されます。
-- **children**: 文字列、数値、Node、またはそれらの配列。
+- **children**: 文字列または Node。**配列は直接受け付けません**。スプレッド構文 (`...`) を使用してください。
 
-### `render(callback)`
+### `mount(target, ...children)`
 
-ルート要素のための更新関数を作成します。
+ターゲット要素のコンテンツを更新します。
 
-- **callback**: `(...args) => Element`
-- **Returns**: `...args` を受け取る関数。この返された関数を呼び出すと DOM が更新されます。
+- **target**: `string` (ID) または `Element`。
+- **children**: `string` または `Node`。複数の引数を渡すことができます。
+- **動作**: `replaceChildren` を使用してターゲットを更新します。配列はスプレッド (`...`) する必要があります。
 
 ## ライセンス
 

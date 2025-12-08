@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML/SVG to twiq Converter</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            white-space: pre;
+        }
+
+        .container {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>HTML/SVG to twiq Converter</h1>
+
+    <div class="container">
+        <label for="input">Input (HTML/SVG):</label>
+        <textarea id="input" placeholder="<div class='foo'>hello</div>"></textarea>
+    </div>
+
+    <div class="container">
+        <button id="convert-btn">Convert</button>
+    </div>
+
+    <div class="container">
+        <label for="output">Output (twiq):</label>
+        <textarea id="output" readonly></textarea>
+    </div>
+
+    <script>
+        const inputEl = document.getElementById('input');
+        const outputEl = document.getElementById('output');
+        const btn = document.getElementById('convert-btn');
+
+        btn.addEventListener('click', () => {
+            const input = inputEl.value.trim();
+            if (!input) {
+                outputEl.value = '';
+                return;
+            }
+
+            const parser = new DOMParser();
+            // Use text/html. For SVG input, it handles it reasonably well inside body.
+            const doc = parser.parseFromString(input, 'text/html');
+
+            // Filter out empty text nodes and get elements
+            const nodes = Array.from(doc.body.childNodes).filter(n => {
+                return n.nodeType === Node.ELEMENT_NODE || (n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+            });
+
+            if (nodes.length === 0) {
+                outputEl.value = '// No elements found';
+                return;
+            }
+
+            const results = nodes.map(node => convertNode(node, 0)).filter(Boolean);
+            outputEl.value = results.join('\n');
+        });
+
+        function convertNode(node, level) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent;
+                if (!text.trim()) return null;
+                return `'${text.trim().replace(/'/g, "\\'")}'`;
+            }
+
+            if (node.nodeType === Node.COMMENT_NODE) {
+                return `/* ${node.textContent.trim()} */`;
+            }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) return null;
+
+            const tagName = node.tagName.toLowerCase();
+
+            // Props
+            const props = [];
+            for (const attr of node.attributes) {
+                const name = attr.name;
+                let key = name;
+                // Simple heuristic for quoting keys
+                if (!/^[a-zA-Z0-9_$]+$/.test(name)) {
+                    key = `'${name}'`;
+                }
+                props.push(`${key}: '${attr.value.replace(/'/g, "\\'")}'`);
+            }
+            const propsStr = props.length ? `{ ${props.join(', ')} }` : '{}';
+
+            // Children
+            const meaningfulChildren = [];
+            node.childNodes.forEach(child => {
+                const res = convertNode(child, level + 1);
+                if (res) meaningfulChildren.push(res);
+            });
+
+            if (meaningfulChildren.length === 0) {
+                return `${tagName}(${propsStr})`;
+            }
+
+            // Formatting: Inline vs Multiline
+            const totalLength = meaningfulChildren.reduce((acc, s) => acc + s.length, 0);
+            // Heuristic: Short enough and no internal newlines -> inline
+            const isShort = totalLength < 60 && meaningfulChildren.length < 4 && !meaningfulChildren.some(s => s.includes('\n'));
+
+            if (isShort) {
+                return `${tagName}(${propsStr}, ${meaningfulChildren.join(', ')})`;
+            } else {
+                // Parent indentation
+                const indent = '  '.repeat(level);
+                // Child indentation relative to parent
+                const childIndent = '  '.repeat(level + 1);
+
+                // When nesting, we need to ensure the children are properly indented relative to the new block.
+                // Since convertNode returns a string that assumes it starts at column 0 (logically),
+                // we need to pad all lines of the child string except the first one?
+                // Actually simpler: convertNode returns "just the code", and we indent it here.
+                // BUT, if convertNode returned a multiline string, that string is already indented relative to ITS 0-base?
+                // No, current logic is recursive string building.
+                // Let's rely on splitting and re-joining for perfectly correct indentation.
+
+                const indentedChildren = meaningfulChildren.map(childCode => {
+                    // Apply childIndent to every line of childCode?
+                    // If childCode is:
+                    // div(
+                    //   span()
+                    // )
+                    // We want to turn it into:
+                    //   div(
+                    //     span()
+                    //   )
+                    return childCode.split('\n').map((line, i) => {
+                        // First line is handled by the join logic below? No.
+                        // We will simply join everything with `,\n` then prepend childIndent to strict start of items?
+                        // No.
+                        // We construct the block:
+                        // tagName(propsStr,
+                        //   child1,
+                        //   child2
+                        // )
+                        // If child1 is multiline, all its lines must be indented.
+                        return i === 0 ? line : childIndent + line; // Wait, this logic is tricky recursively.
+                    }).join('\n');
+                });
+
+                // Actually, my previous logic in step thought was:
+                // `childCode.split('\n').join('\n' + childIndent)`
+                // This adds indent to NEW lines. The first line is placed at the cursor position.
+                // So:
+                /*
+                  tagName(props,
+                    FIRST_LINE_OF_CHILD
+                    SECOND_LINE_OF_CHILD (prefixed with childIndent)
+                  )
+                */
+
+                const joinedChildren = indentedChildren.map(c =>
+                    c.split('\n').join('\n' + childIndent)
+                ).join(`,\n${childIndent}`);
+
+                return `${tagName}(${propsStr},\n${childIndent}${joinedChildren}\n${indent})`;
+            }
+        }
+    </script>
+</body>
+
+</html>

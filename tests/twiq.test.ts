@@ -60,6 +60,29 @@ describe('twiq', () => {
     expect(container.lastElementChild?.textContent).toBe('two');
   });
 
+  it('handles empty children (empty spread)', () => {
+    const container = document.createElement('div');
+    container.innerHTML = '<span>initial</span>';
+
+    // mount with empty spread (effectively no children)
+    // strict check: passed as ...[]
+    mount(container, ...[]);
+
+    expect(container.innerHTML).toBe('');
+    expect(container.childElementCount).toBe(0);
+  });
+
+  it('clears content when no children are provided (no args)', () => {
+    const container = document.createElement('div');
+    container.innerHTML = '<span>initial</span>';
+
+    // mount with no children arguments
+    mount(container);
+
+    expect(container.innerHTML).toBe('');
+    expect(container.childElementCount).toBe(0);
+  });
+
   it('replaces content on subsequent mounts (replaceChildren behavior)', () => {
     const container = document.createElement('div');
 

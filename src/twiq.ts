@@ -5,12 +5,40 @@ export type Props = {
   [K in string]: K extends `on${string}` ? EventHandler : PropValue;
 };
 
-type TagFn<E extends Element = Element> = (props?: Props, ...children: (string | Node)[]) => E;
+type Child = string | Node | Promise<string | Node> | (() => Child);
+type TagFn<E extends Element = Element> = (props?: Props, ...children: Child[]) => E;
 type TagMap = Record<string, TagFn>;
 type HtmlTagMap = { [K in keyof HTMLElementTagNameMap]: TagFn<HTMLElementTagNameMap[K]> } & TagMap;
 type SvgTagMap = { [K in keyof SVGElementTagNameMap]: TagFn<SVGElementTagNameMap[K]> } & TagMap;
 
-const createElement = (ns: string | undefined) => (tag: string, props: Props = {}, ...children: (string | Node)[]): Element => {
+const append = (el: Element, children: Child[]) => {
+  children.forEach((child) => {
+    try {
+      const result = typeof child === 'function' ? child() : child;
+      if (result instanceof Promise) {
+        const placeholder = document.createTextNode('');
+        el.append(placeholder);
+        result
+          .then((c) => placeholder.replaceWith(typeof c === 'string' ? document.createTextNode(c) : c))
+          .catch(console.error);
+      } else if (typeof result === 'function') {
+        // Recursive handling for nested functions if needed, or just append result of result
+        // For simplicity/safety, treating result as Child and recursing one level via append logic would be ideal but complex.
+        // Let's assume result of function is Node | string | Promise.
+        // If result is function, it means HOC returning component? 
+        // Let's recurse safely:
+        append(el, [result]);
+      } else {
+        el.append(result as string | Node);
+      }
+    } catch (e) {
+      console.error(e);
+      // Optional: append error placeholder
+    }
+  });
+};
+
+const createElement = (ns: string | undefined) => (tag: string, props: Props = {}, ...children: Child[]): Element => {
   const element = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
   Object.entries(props).forEach(([key, value]) => {
     if (key.startsWith('on') && typeof value === 'function') {
@@ -24,19 +52,20 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
       element.setAttribute(key, String(finalValue));
     }
   });
-  element.append(...children);
+  append(element, children);
   return element;
 };
 
-export const mount = (target: string | Element, ...children: (string | Node)[]): void => {
+export const mount = (target: string | Element, ...children: Child[]): void => {
   const el = typeof target === 'string' ? document.getElementById(target) : target;
   if (!el) return;
-  el.replaceChildren(...children);
+  el.replaceChildren();
+  append(el, children);
 };
 
-const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children: (string | Node)[]) => Element): T =>
+const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children: Child[]) => Element): T =>
   new Proxy({} as T, {
-    get: (_, tag: string) => (props: Props = {}, ...children: (string | Node)[]) => ce(tag, props, ...children)
+    get: (_, tag: string) => (props: Props = {}, ...children: Child[]) => ce(tag, props, ...children)
   }) as T;
 
 export const tags: HtmlTagMap = makeTags<HtmlTagMap>(createElement(''));

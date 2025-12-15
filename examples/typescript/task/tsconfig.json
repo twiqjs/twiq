@@ -1,0 +1,20 @@
+{
+    "extends": "../../../tsconfig.json",
+    "compilerOptions": {
+        "module": "esnext",
+        "target": "esnext",
+        "moduleResolution": "bundler",
+        "baseUrl": ".",
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "noEmit": true,
+        "paths": {
+            "twiq": [
+                "../../../dist/twiq.d.ts"
+            ]
+        }
+    },
+    "include": [
+        "src"
+    ]
+}

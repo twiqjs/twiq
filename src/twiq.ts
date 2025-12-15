@@ -1,8 +1,12 @@
 type PropValue = string | number | boolean | (() => string | number | boolean);
 type EventHandler = (event: Event) => void;
 
-export type Props = {
-  [K in string]: K extends `on${string}` ? EventHandler : PropValue;
+export type DOMEvents = {
+  [K in keyof GlobalEventHandlersEventMap as `on${Capitalize<K>}`]?: (event: GlobalEventHandlersEventMap[K]) => void;
+};
+
+export type Props = DOMEvents & {
+  [key: string]: PropValue | EventHandler | undefined;
 };
 
 type Child = string | Node | Promise<string | Node> | (() => Child);
@@ -22,18 +26,12 @@ const append = (el: Element, children: Child[]) => {
           .then((c) => placeholder.replaceWith(typeof c === 'string' ? document.createTextNode(c) : c))
           .catch(console.error);
       } else if (typeof result === 'function') {
-        // Recursive handling for nested functions if needed, or just append result of result
-        // For simplicity/safety, treating result as Child and recursing one level via append logic would be ideal but complex.
-        // Let's assume result of function is Node | string | Promise.
-        // If result is function, it means HOC returning component? 
-        // Let's recurse safely:
         append(el, [result]);
       } else {
         el.append(result as string | Node);
       }
     } catch (e) {
       console.error(e);
-      // Optional: append error placeholder
     }
   });
 };
@@ -45,7 +43,10 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
       element.addEventListener(key.slice(2).toLowerCase(), value as EventListener);
       return;
     }
-    const finalValue = typeof value === 'function' ? value() : value;
+    const finalValue = typeof value === 'function' ? (value as () => string | number | boolean)() : value;
+
+    if (finalValue === undefined) return;
+
     if (!ns && key in element) {
       (element as unknown as Record<string, string | number | boolean>)[key] = finalValue;
     } else {
@@ -70,3 +71,12 @@ const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children
 
 export const tags: HtmlTagMap = makeTags<HtmlTagMap>(createElement(''));
 export const tagsSvg: SvgTagMap = makeTags<SvgTagMap>(createElement('http://www.w3.org/2000/svg'));
+
+export const dispatch = <T = any>(name: string, detail?: T) => {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
+export const listen = <T = any>(name: string, callback: (event: CustomEvent<T>) => void) => {
+  window.addEventListener(name, callback as EventListener);
+}
+

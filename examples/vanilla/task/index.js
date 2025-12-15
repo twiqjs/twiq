@@ -2,8 +2,12 @@ import { tags, mount } from '../../../dist/twiq.js';
 
 const { div, h1, ul, li, span, button, input } = tags;
 
-let tasks = [];
 let taskId = 0;
+let tasks = [
+  { id: ++taskId, name: "abc", completed: false },
+  { id: ++taskId, name: "123", completed: false },
+  { id: ++taskId, name: "xyz", completed: false },
+];
 let inputValue = '';
 
 // Component: Controls (Function)
@@ -62,17 +66,21 @@ const TaskList = () => {
   // Simulate error if needed:
   // if (Math.random() > 0.9) throw new Error("Random Render Error");
 
+  // throw new Error("意図的なレンダリングエラー");
+
   return ul({ id: 'task-list' },
     ...tasks.map(t => TaskItem(t))
   );
 };
 
 const Header = () => h1({}, 'TASK (Functional)');
+const Footer = () => div({}, 'Footer');
 
 const App = () => div({},
   Header,
   div({ id: 'controls-container' }, Controls),
-  div({ id: 'list-wrapper' }, TaskList)
+  div({ id: 'list-wrapper' }, TaskList),
+  Footer,
 );
 
 // Initial Static Render (includes initial dynamic content)

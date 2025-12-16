@@ -119,3 +119,41 @@ describe('twiq', () => {
     expect(mouseover).toHaveBeenCalledTimes(1);
   });
 });
+
+import { Safe } from '@twiqjs/twiq';
+
+describe('Safe', () => {
+  const FailingComponent = () => {
+    throw new Error('Boom');
+  };
+
+  const SuccessComponent = () => {
+    return div({}, 'Content');
+  };
+
+  it('renders content normally when no error occurs', () => {
+    const result = Safe(SuccessComponent);
+    // Result should be the div element
+    expect((result as HTMLElement).outerHTML).toBe('<div>Content</div>');
+  });
+
+  it('renders default fallback "Error" when error occurs', () => {
+    const result = Safe(FailingComponent);
+    // Default fallback is string 'Error'
+    expect(result).toBe('Error');
+  });
+
+  it('renders provided string fallback when error occurs', () => {
+    const result = Safe(FailingComponent, 'Custom Error Message');
+    expect(result).toBe('Custom Error Message');
+  });
+
+  it('renders provided Element fallback when error occurs', () => {
+    const fallbackEl = span({ class: 'error' }, 'Failed!');
+    const result = Safe(FailingComponent, fallbackEl);
+    
+    expect((result as HTMLElement).tagName).toBe('SPAN');
+    expect((result as HTMLElement).className).toBe('error');
+    expect((result as HTMLElement).textContent).toBe('Failed!');
+  });
+});

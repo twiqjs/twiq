@@ -1,41 +1,109 @@
 * {
   font-size: 16px;
-  font-family: monospace;
+  font-family: ui-monospace, monospace;
   padding: 0;
   margin: 0;
+  color: #fff;
+  box-sizing: border-box;
 }
 
-body {
-  padding: 20px;
-}
-
-.completed .task-name {
-  text-decoration: line-through;
-  color: #888;
-}
-
-.hidden {
-  display: none;
-}
-
-.controls {
-  margin-bottom: 20px;
-}
-
-#task-list {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  margin-bottom: 10px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
+#frame {
+  height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 16px;
 }
 
-.task-buttons button {
-  margin-left: 5px;
+.err {
+  color: #f00;
+  border: #f00 1px solid;
+  width: 100%;
+}
+
+.app-px {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.app-py {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.p-1 {
+  padding: 4px 8px;
+}
+.p-2 {
+  padding: 16px;
+}
+.grid {
+  display: grid;
+  gap: 8px;
+}
+.flex {
+  display: flex;
+  gap: 8px;
+}
+.grow {
+  flex-grow: 1;
+}
+.end {
+  justify-content: flex-end;
+}
+.col {
+  flex-direction: column;
+}
+.temp-col {
+  grid-template-columns: 1fr;
+}
+.border-high {
+  border: 1px solid #fff;
+}
+.border-high:disabled {
+  border: 1px solid #666;
+}
+.border-low {
+  border: 1px solid #666;
+}
+.bg-main {
+  background-color: #000;
+}
+.bg-high {
+  background-color: #fff;
+}
+.bg-high:disabled {
+  background-color: #666;
+}
+.bg-low {
+  background-color: #222;
+}
+.bg-transparent {
+  background-color: transparent;
+}
+.text-high {
+  color: #000;
+}
+.text-low {
+  color: #fff;
+}
+.pointer {
+  cursor: pointer;
+}
+.pointer:disabled {
+  cursor: not-allowed;
+}
+.list-style-none {
+  list-style: none;
+}
+@media screen and (min-width: 480px) {
+  .temp-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media screen and (min-width: 960px) {
+  .temp-col {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+@media screen and (min-width: 1440px) {
+  .temp-col {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
 }

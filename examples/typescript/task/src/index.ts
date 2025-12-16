@@ -1,27 +1,24 @@
-import { tags, mount, listen } from 'twiq';
-
-// Dynamic Components for Syntax/Runtime Error Isolation
-const AsyncControls = () => import('./Controls').then(m => m.Controls());
-const AsyncTaskList = () => import('./TaskList').then(m => m.TaskList());
+import { tags, mount, listen, Safe } from 'twiq';
+import { Controls } from './Controls';
+import { TaskList } from './TaskList';
 
 const { div, h1 } = tags;
-const Header = () => h1({}, 'TASK (Helper Events)');
+const Header = () => h1({}, 'TASKS');
 const Footer = () => div({}, 'Footer');
 
-const App = () => div({},
-    Header,
-    div({ id: 'controls-container' }, AsyncControls),
-    div({ id: 'list-wrapper' }, AsyncTaskList),
-    Footer,
+const App = () => div({ id: 'frame', class: "bg-main app-py col" },
+  div({ class: 'app-px' }, Header()),
+  div({ id: 'controls-container', class: 'app-px' }, Controls()),
+  div({ id: 'list-wrapper', class: 'app-px grow' }, Safe(TaskList, div({ class: 'err' }, 'Error'))),
+  div({ class: 'app-px' }, Footer()),
 );
 
-mount('app', App);
+mount('app', App());
 
-// Centralized Update Logic with listen helper
 listen('change:tasks', () => {
-    mount('list-wrapper', AsyncTaskList);
+  mount('list-wrapper', Safe(TaskList, div({ class: 'err' }, 'Error')));
 });
 
 listen('change:controls', () => {
-    mount('controls-container', AsyncControls);
+  mount('controls-container', Controls());
 });

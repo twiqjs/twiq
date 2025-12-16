@@ -9,32 +9,11 @@ export type Props = DOMEvents & {
   [key: string]: PropValue | EventHandler | undefined;
 };
 
-type Child = string | Node | Promise<string | Node> | (() => Child);
+type Child = string | Node;
 type TagFn<E extends Element = Element> = (props?: Props, ...children: Child[]) => E;
 type TagMap = Record<string, TagFn>;
 type HtmlTagMap = { [K in keyof HTMLElementTagNameMap]: TagFn<HTMLElementTagNameMap[K]> } & TagMap;
 type SvgTagMap = { [K in keyof SVGElementTagNameMap]: TagFn<SVGElementTagNameMap[K]> } & TagMap;
-
-const append = (el: Element, children: Child[]) => {
-  children.forEach((child) => {
-    try {
-      const result = typeof child === 'function' ? child() : child;
-      if (result instanceof Promise) {
-        const placeholder = document.createTextNode('');
-        el.append(placeholder);
-        result
-          .then((c) => placeholder.replaceWith(typeof c === 'string' ? document.createTextNode(c) : c))
-          .catch(console.error);
-      } else if (typeof result === 'function') {
-        append(el, [result]);
-      } else {
-        el.append(result as string | Node);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  });
-};
 
 const createElement = (ns: string | undefined) => (tag: string, props: Props = {}, ...children: Child[]): Element => {
   const element = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
@@ -53,15 +32,14 @@ const createElement = (ns: string | undefined) => (tag: string, props: Props = {
       element.setAttribute(key, String(finalValue));
     }
   });
-  append(element, children);
+  element.append(...children);
   return element;
 };
 
 export const mount = (target: string | Element, ...children: Child[]): void => {
   const el = typeof target === 'string' ? document.getElementById(target) : target;
   if (!el) return;
-  el.replaceChildren();
-  append(el, children);
+  el.replaceChildren(...children);
 };
 
 const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children: Child[]) => Element): T =>
@@ -76,7 +54,16 @@ export const dispatch = <T = any>(name: string, detail?: T) => {
   window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
+
 export const listen = <T = any>(name: string, callback: (event: CustomEvent<T>) => void) => {
   window.addEventListener(name, callback as EventListener);
 }
 
+export const Safe = (render: () => Child, fallback: Child = 'Error'): Child => {
+  try {
+    return render();
+  } catch (e) {
+    console.error(e);
+    return fallback;
+  }
+};

@@ -1,19 +1,34 @@
 export interface Task {
-  id: number;
+  id: string;
   name: string;
   completed: boolean;
 }
 
-export interface State {
-  taskId: number;
-  tasks: Task[];
-  inputValue: string;
-  isSynced: boolean;
-}
+export class TaskStore {
+  tasks: Task[] = [];
+  isSynced: boolean = false;
 
-export const state: State = {
-  taskId: 3,
-  tasks: [],
-  inputValue: '',
-  isSynced: false
-};
+  addTask(name: string) {
+    this.tasks.push({
+      id: crypto.randomUUID(),
+      name,
+      completed: false
+    });
+  }
+
+  deleteTask(id: string) {
+    this.tasks = this.tasks.filter(t => t.id !== id);
+  }
+
+  updateTask(id: string, task: Partial<Task>) {
+    const target = this.tasks.find(t => t.id === id);
+    if (target) {
+      Object.assign(target, task);
+    }
+  }
+
+  setTasks(tasks: Task[]) {
+    this.tasks = tasks;
+    this.isSynced = true;
+  }
+}

@@ -50,15 +50,6 @@ const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children
 export const tags: HtmlTagMap = makeTags<HtmlTagMap>(createElement(''));
 export const tagsSvg: SvgTagMap = makeTags<SvgTagMap>(createElement('http://www.w3.org/2000/svg'));
 
-export const dispatch = <T = any>(name: string, detail?: T) => {
-  window.dispatchEvent(new CustomEvent(name, { detail }));
-}
-
-
-export const listen = <T = any>(name: string, callback: (event: CustomEvent<T>) => void) => {
-  window.addEventListener(name, callback as EventListener);
-}
-
 export const Safe = (render: () => Child, fallback: Child = 'Error'): Child => {
   try {
     return render();

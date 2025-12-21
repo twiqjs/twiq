@@ -1,59 +1,43 @@
-import { tags, dispatch } from 'twiq';
-import { state, type Task } from './state';
+import { tags } from 'twiq';
+import { type Task } from './state';
 
 const { div, ul, li, span, button } = tags;
 
-const TaskItem = (task: Task) => () =>
+type TaskItemProps = {
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, task: Partial<Task>) => void;
+};
+
+const TaskItem = (task: Task, { onDelete, onUpdate }: TaskItemProps) =>
   li({ class: `p-2 flex col border-low ${task.completed ? 'bg-low' : ''}` },
     span({ class: 'grow text-low' }, task.name),
     div({ class: 'flex end' },
       button({
         class: 'border-high p-1 pointer bg-transparent',
-        onClick: () => {
-          state.tasks = state.tasks.filter(t => t.id !== task.id);
-          dispatch('change:tasks');
-        }
+        onClick: () => onDelete(task.id)
       }, 'Delete'),
       button({
         class: `bg-high text-high border-high border-high p-1 pointer`,
         disabled: task.completed ? true : false,
-        onClick: () => {
-          const target = state.tasks.find(t => t.id === task.id);
-          if (target) target.completed = true;
-          dispatch('change:tasks');
-        }
+        onClick: () => onUpdate(task.id, { completed: true })
       }, task.completed ? 'Completed' : 'Complete'),
     )
   );
 
-const getTasks = () => {
-  return new Promise<Task[]>((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: 1, name: "abc", completed: false },
-        { id: 2, name: "123", completed: false },
-        { id: 3, name: "xyz", completed: false },
-      ]);
-    }, 2000);
-  });
+export type TaskListProps = {
+  tasks: Task[];
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, task: Partial<Task>) => void;
 };
 
-export const TaskList = () => {
-  if (state.isSynced) {
+export const TaskList = (props: TaskListProps) => {
+  if (props.tasks.length > 0) {
     return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-      ...state.tasks.map(t => TaskItem(t)())
+      ...props.tasks.map(t => TaskItem(t, props))
     );
   }
 
-  const container = ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
+  return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
     'Loading...'
   );
-
-  getTasks().then((tasks) => {
-    state.tasks = tasks;
-    state.isSynced = true;
-    dispatch('change:tasks');
-  });
-
-  return container;
 };

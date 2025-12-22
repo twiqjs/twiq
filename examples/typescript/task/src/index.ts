@@ -1,4 +1,4 @@
-import { tags, mount, Safe } from 'twiq';
+import { tags, mount, safe } from 'twiq';
 import { Controls } from './Controls';
 import { TaskList, type TaskListProps } from './TaskList';
 import { TaskStore, type Task } from './state';
@@ -34,7 +34,7 @@ const createTaskList = () => {
       renderTaskList();
     }
   };
-  return Safe(() => TaskList(props), div({ class: 'err' }, 'Error'));
+  return safe(() => TaskList(props), div({ class: 'err' }, 'Error'));
 };
 
 const createControls = () => {

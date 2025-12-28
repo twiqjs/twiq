@@ -28,16 +28,16 @@
 
   const addTask = (name) => {
     tasks = [...tasks, { id: self.crypto.randomUUID(), name, completed: false }];
-    mount('task-list', TaskList(tasks));
-    mount('add-task', Controls(''));
+    mount('task-list', TaskList(tasks, disabledTask, deleteTask));
+    mount('add-task', Controls('', addTask));
   }
   const disabledTask = (taskId) => {
     tasks = tasks.map(t => t.id === taskId ? { ...t, completed: true } : t);
-    mount('task-list', TaskList(tasks));
+    mount('task-list', TaskList(tasks, disabledTask, deleteTask));
   }
   const deleteTask = (taskId) => {
     tasks = tasks.filter(t => t.id !== taskId);
-    mount('task-list', TaskList(tasks));
+    mount('task-list', TaskList(tasks, disabledTask, deleteTask));
   }
 
   const Controls = (inputValue) => {
@@ -53,16 +53,16 @@
     );
   };
 
-  const TaskList = (tl) => {
+  const TaskList = (list, disable, del) => {
     return ul({},
-      ...tl.map(t => 
+      ...list.map(t => 
         li({ class: 'margin' },
           button({
             disabled: t.completed ? true : false,
-            onClick: () => disabledTask(t.id)
+            onClick: () => disable(t.id)
           }, 'Complete'),
           button({
-            onClick: () => deleteTask(t.id)
+            onClick: () => del(t.id)
           }, 'Delete'),
           span({
             class: `${t.completed ? 'disabled' : 'enabled'}`
@@ -74,8 +74,8 @@
 
   mount('app', 
     h1({}, 'TASKMANAGER'),
-    div({ id: 'add-task' }, Controls('')),
-    div({ id: 'task-list' }, TaskList(tasks)),
+    div({ id: 'add-task' }, Controls('', addTask)),
+    div({ id: 'task-list' }, TaskList(tasks, disabledTask, deleteTask)),
   );
   </script>
 </body>

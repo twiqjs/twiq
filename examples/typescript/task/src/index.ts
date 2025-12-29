@@ -4,8 +4,8 @@ import { TaskList, type TaskListProps } from './TaskList';
 import { TaskStore, type Task } from './state';
 
 const { div, h1 } = tags;
-const Header = () => h1({}, 'TASKS');
-const Footer = () => div({}, 'Footer');
+const Header = () => h1({}, 'TASKMANAGER');
+const Footer = () => div({ class: 'flex center' }, '©2025 @twiqjs/twiq');
 
 const store = new TaskStore();
 

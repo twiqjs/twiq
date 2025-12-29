@@ -49,12 +49,3 @@ const makeTags = <T extends TagMap>(ce: (tag: string, props?: Props, ...children
 
 export const tags: HtmlTagMap = makeTags<HtmlTagMap>(createElement(''));
 export const tagsSvg: SvgTagMap = makeTags<SvgTagMap>(createElement('http://www.w3.org/2000/svg'));
-
-export const safe = (render: () => Child, fallback: Child = 'Error'): Child => {
-  try {
-    return render();
-  } catch (e) {
-    console.error(e);
-    return fallback;
-  }
-};

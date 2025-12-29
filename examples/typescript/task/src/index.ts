@@ -1,4 +1,4 @@
-import { tags, mount, safe } from 'twiq';
+import { tags, mount } from 'twiq';
 import { Controls } from './Controls';
 import { TaskList, type TaskListProps } from './TaskList';
 import { TaskStore, type Task } from './state';
@@ -8,18 +8,6 @@ const Header = () => h1({}, 'TASKS');
 const Footer = () => div({}, 'Footer');
 
 const store = new TaskStore();
-
-const getTasks = () => {
-  return new Promise<Task[]>((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: crypto.randomUUID(), name: "abc", completed: false },
-        { id: crypto.randomUUID(), name: "123", completed: false },
-        { id: crypto.randomUUID(), name: "xyz", completed: false },
-      ]);
-    }, 2000);
-  });
-};
 
 const createTaskList = () => {
   const props: TaskListProps = {
@@ -31,9 +19,10 @@ const createTaskList = () => {
     onUpdate: (id: string, task: Partial<Task>) => {
       store.updateTask(id, task);
       renderTaskList();
-    }
+    },
+    emptyMessage: !store.isSynced ? "Loading..." : "No tasks available."
   };
-  return safe(() => TaskList(props), div({ class: 'err' }, 'Error'));
+  return TaskList(props);
 };
 
 const createControls = () => {
@@ -62,6 +51,20 @@ const App = () => div({ id: 'frame', class: "bg-main app-py col" },
 );
 
 mount('app', App());
+
+const getTasks = () => {
+  return new Promise<Task[]>((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { id: crypto.randomUUID(), name: "Buy groceries", completed: false },
+        { id: crypto.randomUUID(), name: "Read a book", completed: false },
+        { id: crypto.randomUUID(), name: "Pay bills", completed: false },
+        { id: crypto.randomUUID(), name: "Walk the dog", completed: false },
+        { id: crypto.randomUUID(), name: "Call mom", completed: false },
+      ]);
+    }, 2000);
+  });
+};
 
 getTasks().then((tasks) => {
   store.setTasks(tasks);

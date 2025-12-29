@@ -31,11 +31,9 @@ const createTaskList = () => {
     onUpdate: (id: string, task: Partial<Task>) => {
       store.updateTask(id, task);
       renderTaskList();
-    }
+    },
+    emptyMessage: !store.isSynced ? "Loading..." : "No tasks available."
   };
-  if (!store.isSynced) {
-    return div({ class: 'p-2' }, 'Loading...');
-  }
   return TaskList(props);
 };
 

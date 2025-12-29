@@ -28,13 +28,14 @@ export type TaskListProps = {
   tasks: Task[];
   onDelete: (id: string) => void;
   onUpdate: (id: string, task: Partial<Task>) => void;
+  emptyMessage?: string;
 };
 
 export const TaskList = (props: TaskListProps) => {
   try {
     if (props.tasks.length === 0) {
       return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-        li({ class: 'p-2 text-low' }, 'No tasks')
+        li({ class: 'p-2 text-low' }, props.emptyMessage || 'No tasks available.')
       );
     }
     return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },

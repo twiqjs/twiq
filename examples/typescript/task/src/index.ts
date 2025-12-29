@@ -33,6 +33,9 @@ const createTaskList = () => {
       renderTaskList();
     }
   };
+  if (!store.isSynced) {
+    return div({ class: 'p-2' }, 'Loading...');
+  }
   return TaskList(props);
 };
 

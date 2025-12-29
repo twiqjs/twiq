@@ -32,14 +32,13 @@ export type TaskListProps = {
 
 export const TaskList = (props: TaskListProps) => {
   try {
-    if (props.tasks.length > 0) {
+    if (props.tasks.length === 0) {
       return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-        ...props.tasks.map(t => TaskItem(t, props))
+        li({ class: 'p-2 text-low' }, 'No tasks')
       );
     }
-
     return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-      'Loading...'
+      ...props.tasks.map(t => TaskItem(t, props))
     );
   } catch (e) {
     console.error(e);

@@ -31,13 +31,18 @@ export type TaskListProps = {
 };
 
 export const TaskList = (props: TaskListProps) => {
-  if (props.tasks.length > 0) {
-    return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-      ...props.tasks.map(t => TaskItem(t, props))
-    );
-  }
+  try {
+    if (props.tasks.length > 0) {
+      return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
+        ...props.tasks.map(t => TaskItem(t, props))
+      );
+    }
 
-  return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
-    'Loading...'
-  );
+    return ul({ id: 'task-list', class: 'grid temp-col list-style-none' },
+      'Loading...'
+    );
+  } catch (e) {
+    console.error(e);
+    return div({ class: 'err' }, 'Error');
+  }
 };

@@ -83,6 +83,12 @@
 .text-low {
   color: #fff;
 }
+.stroke-high {
+  stroke: rgb(0 0 0 / 1);
+}
+.stroke-low {
+  stroke: rgb(255 255 255 / 1);
+}
 .pointer {
   cursor: pointer;
 }
@@ -91,6 +97,10 @@
 }
 .list-style-none {
   list-style: none;
+}
+.center {
+  align-items: center;
+  justify-content: center;
 }
 @media screen and (min-width: 480px) {
   .temp-col {

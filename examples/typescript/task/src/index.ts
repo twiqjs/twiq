@@ -9,18 +9,6 @@ const Footer = () => div({}, 'Footer');
 
 const store = new TaskStore();
 
-const getTasks = () => {
-  return new Promise<Task[]>((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: crypto.randomUUID(), name: "abc", completed: false },
-        { id: crypto.randomUUID(), name: "123", completed: false },
-        { id: crypto.randomUUID(), name: "xyz", completed: false },
-      ]);
-    }, 2000);
-  });
-};
-
 const createTaskList = () => {
   const props: TaskListProps = {
     tasks: store.tasks,
@@ -63,6 +51,20 @@ const App = () => div({ id: 'frame', class: "bg-main app-py col" },
 );
 
 mount('app', App());
+
+const getTasks = () => {
+  return new Promise<Task[]>((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { id: crypto.randomUUID(), name: "Buy groceries", completed: false },
+        { id: crypto.randomUUID(), name: "Read a book", completed: false },
+        { id: crypto.randomUUID(), name: "Pay bills", completed: false },
+        { id: crypto.randomUUID(), name: "Walk the dog", completed: false },
+        { id: crypto.randomUUID(), name: "Call mom", completed: false },
+      ]);
+    }, 2000);
+  });
+};
 
 getTasks().then((tasks) => {
   store.setTasks(tasks);
